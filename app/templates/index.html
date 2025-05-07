@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Pessoas em Vídeo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Detector de Pessoas em Vídeo</h1>
+            <p>Faça upload de um vídeo para detectar e circular pessoas</p>
+        </header>
+        
+        <main>
+            <section class="upload-section">
+                <div class="upload-container" id="upload-container">
+                    <label for="video-upload" class="upload-label">
+                        <div class="upload-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="upload-text">
+                            <span>Arraste e solte um vídeo aqui</span>
+                            <span class="upload-hint">ou clique para selecionar um arquivo</span>
+                        </div>
+                    </label>
+                    <input type="file" id="video-upload" accept="video/*" hidden>
+                </div>
+                
+                <div class="selected-file" id="selected-file-container" style="display: none;">
+                    <div class="file-info">
+                        <span id="file-name">nome_do_arquivo.mp4</span>
+                        <span id="file-size">0 MB</span>
+                    </div>
+                    <button class="upload-btn" id="upload-btn">Processar Vídeo</button>
+                </div>
+            </section>
+            
+            <section class="processing-section" id="processing-section" style="display: none;">
+                <h2>Processando seu vídeo</h2>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress" id="progress" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-percentage">0%</span> concluído
+                    </div>
+                </div>
+                <p class="processing-info">O vídeo está sendo processado para detectar e circular pessoas. Isso pode levar alguns minutos, dependendo do tamanho do vídeo.</p>
+            </section>
+            
+            <section class="result-section" id="result-section" style="display: none;">
+                <h2>Processamento Concluído!</h2>
+                <div class="video-container">
+                    <video id="processed-video" controls>
+                        Seu navegador não suporta o elemento de vídeo.
+                    </video>
+                </div>
+                <div class="download-container">
+                    <a id="download-link" class="download-btn" href="#" download>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Baixar Vídeo Processado
+                    </a>
+                    <button class="new-upload-btn" id="new-upload-btn">Processar Outro Vídeo</button>
+                </div>
+            </section>
+        </main>
+        
+        <div class="notification" id="notification">
+            <div class="notification-content">
+                <span id="notification-message">Mensagem de notificação</span>
+                <button id="notification-close">×</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

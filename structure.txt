@@ -1,0 +1,16 @@
+video-detection-app/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── detector.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── styles.css
+│   │   ├── js/
+│   │   │   └── script.js
+│   │   └── uploads/
+│   │       └── .gitkeep
+│   └── templates/
+│       └── index.html
+├── requirements.txt
+└── README.md
