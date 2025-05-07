@@ -77,19 +77,21 @@ async def process_video_task(file_path: str, process_id: str):
             output_path, 
             process_id,
             progress_callback=lambda progress: asyncio.create_task(
-                manager.broadcast(f"{{'process_id': '{process_id}', 'progress': {progress}}}")
+                manager.broadcast(f'{{"process_id": "{process_id}", "progress": {progress}}}')
             )
         )
         
         # Notifica conclusão do processamento
         download_url = f"/static/uploads/{process_id}/processed.mp4"
         await manager.broadcast(
-            f"{{'process_id': '{process_id}', 'progress': 100, 'status': 'completed', 'download_url': '{download_url}'}}"
+            f'{{"process_id": "{process_id}", "progress": 100, "status": "completed", "download_url": "{download_url}"}}'
         )
     except Exception as e:
         # Notifica erro no processamento
+        # Ensure the error message is properly escaped for JSON
+        error_message = str(e).replace('"', '\\"')
         await manager.broadcast(
-            f"{{'process_id': '{process_id}', 'status': 'error', 'message': '{str(e)}'}}"
+            f'{{"process_id": "{process_id}", "status": "error", "message": "{error_message}"}}'
         )
 
 @app.websocket("/ws/{client_id}")

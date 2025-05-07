@@ -32,7 +32,30 @@ document.addEventListener('DOMContentLoaded', function() {
         
         websocket.onopen = function(event) {
             console.log('WebSocket conectado');
-        }
+        };
+        
+        websocket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                // Ignora mensagens de eco
+                if (data.process_id) {
+                    handleProgressUpdate(data);
+                }
+            } catch (error) {
+                console.log('Mensagem recebida:', event.data);
+            }
+        };
+        
+        websocket.onclose = function(event) {
+            console.log('WebSocket desconectado');
+            // Tenta reconectar após 3 segundos
+            setTimeout(initWebSocket, 3000);
+        };
+        
+        websocket.onerror = function(error) {
+            console.error('Erro no WebSocket:', error);
+        };
+    }
     
     // Eventos de Upload e Drag & Drop
     fileInput.addEventListener('change', handleFileSelection);
@@ -59,9 +82,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    uploadContainer.addEventListener('click', function() {
-        fileInput.click();
-    });
+    // Remove the generic click listener from uploadContainer to avoid conflicts.
+    // uploadContainer.addEventListener('click', function(e) { ... });
+
+    // Add a specific click listener to the label within uploadContainer.
+    const uploadLabel = uploadContainer.querySelector('.upload-label');
+    if (uploadLabel) {
+        uploadLabel.addEventListener('click', function() {
+            // Since the 'for' attribute was removed from the label in HTML,
+            // we no longer need to preventDefault() or stopPropagation() here
+            // for the purpose of avoiding double dialogs.
+            // Simply click the hidden file input.
+            fileInput.click();
+        });
+    } else {
+        // Fallback: if the label isn't found, log an error.
+        // Clicks might not work as expected. This shouldn't happen with the current HTML.
+        console.error('.upload-label not found within #upload-container. File selection might be broken.');
+        // As a less ideal fallback, one could re-add a listener to uploadContainer,
+        // but the primary approach is to use the label.
+    }
     
     // Função para lidar com a seleção de arquivo
     function handleFileSelection(e) {
@@ -140,29 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
             processingSection.style.display = 'none';
             selectedFileContainer.style.display = 'flex';
         });
-    };
-        
-        websocket.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                // Ignora mensagens de eco
-                if (data.process_id) {
-                    handleProgressUpdate(data);
-                }
-            } catch (error) {
-                console.log('Mensagem recebida:', event.data);
-            }
-        };
-        
-        websocket.onclose = function(event) {
-            console.log('WebSocket desconectado');
-            // Tenta reconectar após 3 segundos
-            setTimeout(initWebSocket, 3000);
-        };
-        
-        websocket.onerror = function(error) {
-            console.error('Erro no WebSocket:', error);
-        };
     }
     
     // Inicia a conexão WebSocket
@@ -220,6 +237,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Define o vídeo processado e o link de download
                 processedVideo.src = data.download_url;
                 downloadLink.href = data.download_url;
+                console.log('Processed video URL:', data.download_url); // Log para depuração
+
+                // Listener para erros no carregamento/decodificação do vídeo
+                processedVideo.addEventListener('error', function(e) {
+                    console.error('Erro ao carregar o vídeo:', e);
+                    let errorDetail = "Verifique o console para detalhes técnicos.";
+                    if (processedVideo.error) {
+                        switch (processedVideo.error.code) {
+                            case MediaError.MEDIA_ERR_ABORTED:
+                                errorDetail = "Download do vídeo abortado.";
+                                break;
+                            case MediaError.MEDIA_ERR_NETWORK:
+                                errorDetail = "Erro de rede durante o download do vídeo.";
+                                break;
+                            case MediaError.MEDIA_ERR_DECODE:
+                                errorDetail = "Erro ao decodificar o vídeo. Formato pode não ser suportado ou arquivo corrompido.";
+                                break;
+                            case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                                errorDetail = "Fonte do vídeo não suportada ou formato inválido.";
+                                break;
+                            default:
+                                errorDetail = "Ocorreu um erro desconhecido ao carregar o vídeo.";
+                        }
+                    }
+                    showNotification(`Erro ao carregar o vídeo. ${errorDetail}`, true);
+                }, { once: true });
+                
+                processedVideo.addEventListener('loadeddata', function() {
+                    processedVideo.muted = true; // Garante que o vídeo está mudo antes de tentar o play
+                    const playPromise = processedVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('Vídeo pronto para reprodução ou autoplay iniciado via loadeddata.');
+                        }).catch(error => {
+                            console.warn('Autoplay (via loadeddata) foi impedido ou ocorreu um erro:', error);
+                            showNotification('Vídeo carregado. Clique no play para assistir.', false);
+                        });
+                    }
+                }, { once: true });
+
+                // Inicia o carregamento do vídeo. Isso irá disparar o evento 'loadeddata' ou 'error'.
+                processedVideo.load();
                 
                 // Mostra notificação de conclusão
                 showNotification('Processamento concluído com sucesso!');
@@ -233,4 +292,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-})
+});
